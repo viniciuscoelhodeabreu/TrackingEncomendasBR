@@ -2,6 +2,7 @@ language: java
 install: 
   - cd lib
   - mvn install:install-file -Dfile=./instagram4j-custom.jar -DpomFile=../pom.xml
+  - cd ..
 
 script:
   - mvn compile
