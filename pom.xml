@@ -25,6 +25,13 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
 
+	<repositories>
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
+		</repository>
+	</repositories>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -74,11 +81,11 @@
 			<artifactId>junit-jupiter-api</artifactId>
 			<scope>test</scope>
 		</dependency>
-		
+
 		<dependency>
-			<groupId>com.github.instagram4j</groupId>
+			<groupId>com.github.LorenzooG</groupId>
 			<artifactId>instagram4j</artifactId>
-			<version>2.0.2</version>
+			<version>2.0.10</version>
 		</dependency>
 
 	</dependencies>
