@@ -26,5 +26,5 @@ jobs:
            echo "Token=$LINKANDTRACK_TOKEN"
            mvn test
       env:
-        LINKANDTRACK_USER: ${{ secrets.LINKANDTRACK_USER}}
+        LINKANDTRACK_USER: ${{ secrets.LINKANDTRACK_TOKEN}}
         LINKANDTRACK_TOKEN: teste
