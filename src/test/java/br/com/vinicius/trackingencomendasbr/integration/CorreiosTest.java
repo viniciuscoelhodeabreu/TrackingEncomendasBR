@@ -39,8 +39,6 @@ public class CorreiosTest {
 		Optional<HttpResponse> httpResponse = HttpUtil.doGet(Constants.getLinkAndTrackUrl(linkAndTrackUser, linkAndTrackToken, CORREIOS_DEFAULT_PACKAGE_CODE));
 		String response = EntityUtils.toString(httpResponse.get().getEntity());
 		
-		System.out.println(response);
-		
 		TrackingDTO tracking = new Gson().fromJson(response, TrackingDTO.class);
 		
 		assertTrue(httpResponse.isPresent());
