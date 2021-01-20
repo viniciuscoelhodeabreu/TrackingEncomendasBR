@@ -16,6 +16,10 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
+    - name: Set up System Variables
+      env:
+        LINKANDTRACK_USER: ${{ secrets.LINKANDTRACK_USER}}
+        LINKANDTRACK_TOKEN: ${{ secrets.LINKANDTRACK_TOKEN}}
     - name: Cache Maven packages
       uses: actions/cache@v2
       with:
