@@ -21,7 +21,10 @@ jobs:
       run: mvn compile
 
     - name: Run the tests
-      run: mvn test
+      run: |
+           echo "User=$LINKANDTRACK_USER"
+           echo "Token=$LINKANDTRACK_TOKEN"
+           mvn test
       env:
         LINKANDTRACK_USER: ${{ secrets.LINKANDTRACK_USER}}
         LINKANDTRACK_TOKEN: ${{ secrets.LINKANDTRACK_TOKEN}}
