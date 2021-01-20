@@ -10,6 +10,7 @@ import java.util.Optional;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 
 import com.google.gson.Gson;
@@ -24,6 +25,7 @@ public class CorreiosTest {
 	private static final String CORREIOS_DEFAULT_PACKAGE_CODE = "AA123456789BR";
 	
 	@Test
+	@Order(1)
 	public void shouldLinkAndTrackCredentialsSystemVariableNotNull() {
 		
 		assertNotNull(System.getenv("LINKANDTRACK_USER"),  "Usuário do Link&Track não é nulo.");
@@ -31,6 +33,7 @@ public class CorreiosTest {
 	}
 	
 	@Test
+	@Order(2)
 	@SneakyThrows(IOException.class)
 	public void shouldReturnOkStatusCodeAndValidService() {
 		String linkAndTrackUser = System.getenv("LINKANDTRACK_USER");

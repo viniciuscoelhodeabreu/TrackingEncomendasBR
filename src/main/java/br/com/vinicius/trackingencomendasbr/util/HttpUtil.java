@@ -7,11 +7,13 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClients;
 
+import lombok.NonNull;
+
 public class HttpUtil {
 	
 	private static HttpClient httpClient;
 	
-	public static Optional<HttpResponse> doGet(final String url) {
+	public static Optional<HttpResponse> doGet(final @NonNull String url) {
 		try {
 			HttpGet httpGet = new HttpGet(url);
 			HttpResponse httpResponse = getHttpClient().execute(httpGet);
