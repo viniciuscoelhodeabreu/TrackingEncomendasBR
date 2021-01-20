@@ -1,1 +1,4 @@
 language: java
+install: 
+  - cd ViniciusCoelhoDeAbreu/TrackingEncomendasBR/lib
+  - mvn install:install-file -Dfile=./instagram4j-custom.jar -DpomFile=../pom.xml
