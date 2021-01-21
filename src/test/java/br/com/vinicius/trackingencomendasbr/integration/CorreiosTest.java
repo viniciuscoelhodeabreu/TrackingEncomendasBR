@@ -46,9 +46,9 @@ public class CorreiosTest {
 		
 		assertTrue(httpResponse.isPresent());
 		assertEquals(200, httpResponse.get().getStatusLine().getStatusCode(), "O retorno do Link&Track é Status Code =  OK");
-		assertNotNull(tracking.getEventos(), "A lista de eventos do pacote código default não é nula.");
-		assertNotNull(tracking.getServico(), "O serviço do pacote código default não é nulo.");
-		assertFalse(tracking.getServico().isEmpty(), "O serviço do pacote código default não é vazio.");
+		assertNotNull(tracking.getEvents(), "A lista de eventos do pacote código default não é nula.");
+		assertNotNull(tracking.getService(), "O serviço do pacote código default não é nulo.");
+		assertFalse(tracking.getService().isEmpty(), "O serviço do pacote código default não é vazio.");
 	}
 	
 }
