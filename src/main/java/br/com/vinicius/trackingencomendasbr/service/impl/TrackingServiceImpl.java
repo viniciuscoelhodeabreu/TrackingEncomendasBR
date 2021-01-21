@@ -66,8 +66,10 @@ public class TrackingServiceImpl implements ITrackingService {
 				if(lastPackageEvent.getTime().after(event.toDate()))
 					continue;
 				
+				String message = Constants.getTrackingMessage(event.getDate(), event.getHour(), event.getPlace(), event.getStatus(), String.join("\n", event.getSubStatus()));
+				
 				userPackageEventRepository.save(new UserPackageEventEntity(event.toDate(), tracking.getLast(), userPackage));
-				InstagramDirectSenderQueueManager.addMessage(Constants.getTrackingMessage(event.getDate(), event.getHour(), event.getPlace(), event.getStatus(), String.join("\n", event.getSubStatus())), userPackage.getUser().getIdentification());	
+				InstagramDirectSenderQueueManager.addMessage(Constants.getNewStatusUpdateMessage(message), userPackage.getUser().getExternalIdentification());
 			}
 		}
 	}

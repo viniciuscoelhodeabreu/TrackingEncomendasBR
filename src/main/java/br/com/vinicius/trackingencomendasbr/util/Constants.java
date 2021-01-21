@@ -15,6 +15,8 @@ public class Constants {
 	public static final String INVALID_PACKAGE_TRACKING_CODE = "O código informado de rastreio é inválido ou já está sendo rastreado por você."
 			+ "													\nLembrando que no momento só aceitamos código de rastreio dos Correios.";
 	
+	public static final String PACKAGE_NEW_STATUS_UPDATE_MESSAGE = "Houve uma atualização no status da sua encomenda: %s\n";
+	
 	public static final String TRACKING_MESSAGE = "(%s às %s %s) - %s \n %s";
 	
 	public static final String getLinkAndTrackUrl(String user, String token, String trackCode) {
@@ -31,6 +33,10 @@ public class Constants {
 	
 	public static final String getTrackingMessage(String date, String hour, String place, String status, String subStatus) {
 		return String.format(TRACKING_MESSAGE, date, hour, place, status, subStatus);
+	}
+	
+	public static final String getNewStatusUpdateMessage(String message) {
+		return String.format(PACKAGE_NEW_STATUS_UPDATE_MESSAGE, message);
 	}
 	
 }
