@@ -52,7 +52,6 @@ public class TrackingServiceImpl implements ITrackingService {
 	public void sendTrackingPendingUpdates() {
 		for(UserPackageEntity userPackage : userPackageRepository.findAll()) {
 			TrackingDTO tracking = linkAndTrackService.getTrackingByTrackCode(userPackage.getTrackingCode());
-			
 			Optional<UserPackageEventEntity> lastPackageUpdate = userPackageEventRepository.findLastByUserPackageId(userPackage.getId());
 			
 			if(lastPackageUpdate.isPresent() && lastPackageUpdate.get().getLast().equals(tracking.getLast()))
