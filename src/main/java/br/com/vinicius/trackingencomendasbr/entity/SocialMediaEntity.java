@@ -35,4 +35,5 @@ public class SocialMediaEntity implements Serializable{
 
 	@Column(length = 100, nullable = false, unique = true)
 	private String description;
+	
 }

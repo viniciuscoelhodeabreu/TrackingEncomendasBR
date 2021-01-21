@@ -32,16 +32,23 @@ public class TrackingEncomendasBrApplication {
 		new Thread(() -> {
 			while(true) {
 				trackingService.startInstagramInboxReceiver();
-				Util.sleepMinutes(5);
+				Util.sleepSeconds(30);
 			}
 		}, "Instagram Inbox Receiver Thread").start();
 		
 		new Thread(() -> {
 			while(true) {
 				trackingService.sendInstagramQueuedMessages();
-				Util.sleepMinutes(1);
+				Util.sleepSeconds(30);
 			}
-		}, "Instagram Inbox Receiver Thread").start();
+		}, "Instagram Queue DM Sender Thread").start();
+		
+		new Thread(() -> {
+			while(true) {
+				trackingService.sendTrackingPendingUpdates();
+				Util.sleepSeconds(30);
+			}
+		}, "Instagram already Tracking Packages Updates Thread").start();
 		
 	}
 }

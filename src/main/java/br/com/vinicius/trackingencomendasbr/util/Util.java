@@ -3,6 +3,7 @@ package br.com.vinicius.trackingencomendasbr.util;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -36,6 +37,11 @@ public class Util {
 		calendar.setTime(date);
 		
 		return calendar;
+	}
+	
+	@SneakyThrows
+	public static Date dateFromString(String pattern, String input) {
+		return new SimpleDateFormat(pattern).parse(input);
 	}
 	
 	@SneakyThrows

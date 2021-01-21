@@ -1,5 +1,9 @@
 package br.com.vinicius.trackingencomendasbr.service.impl;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 
 import com.github.instagram4j.instagram4j.models.direct.IGThread;
@@ -12,12 +16,14 @@ import br.com.vinicius.trackingencomendasbr.dto.TrackingDTO;
 import br.com.vinicius.trackingencomendasbr.entity.UserEntity;
 import br.com.vinicius.trackingencomendasbr.entity.UserMessageEntity;
 import br.com.vinicius.trackingencomendasbr.entity.UserPackageEntity;
+import br.com.vinicius.trackingencomendasbr.entity.UserPackageEventEntity;
 import br.com.vinicius.trackingencomendasbr.exception.NotFoundException;
 import br.com.vinicius.trackingencomendasbr.manager.InstagramDirectSenderQueueManager;
 import br.com.vinicius.trackingencomendasbr.model.InstagramMessage;
 import br.com.vinicius.trackingencomendasbr.repository.IShippingCompanyRepository;
 import br.com.vinicius.trackingencomendasbr.repository.ISocialMediaRepository;
 import br.com.vinicius.trackingencomendasbr.repository.IUserMessageRepository;
+import br.com.vinicius.trackingencomendasbr.repository.IUserPackageEventRepository;
 import br.com.vinicius.trackingencomendasbr.repository.IUserPackageRepository;
 import br.com.vinicius.trackingencomendasbr.service.IInstagramService;
 import br.com.vinicius.trackingencomendasbr.service.ILinkAndTrackService;
@@ -40,6 +46,32 @@ public class TrackingServiceImpl implements ITrackingService {
 	private final IUserMessageRepository userMessageRepository;
 	private final IShippingCompanyRepository shippingCompanyRepository;
 	private final IUserPackageRepository userPackageRepository;
+	private final IUserPackageEventRepository userPackageEventRepository;
+	
+	@Override
+	public void sendTrackingPendingUpdates() {
+		for(UserPackageEntity userPackage : userPackageRepository.findAll()) {
+			TrackingDTO tracking = linkAndTrackService.getTrackingByTrackCode(userPackage.getTrackingCode());
+			
+			Optional<UserPackageEventEntity> lastPackageUpdate = userPackageEventRepository.findLastByUserPackageId(userPackage.getId());
+			
+			if(lastPackageUpdate.isPresent() && lastPackageUpdate.get().getLast().equals(tracking.getLast()))
+				continue;
+			
+			Collections.reverse(tracking.getEvents());
+			
+			UserPackageEventEntity lastPackageEvent = lastPackageUpdate.get();
+			List<EventDTO> events = tracking.getEvents();
+			
+			for(EventDTO event : events) {
+				if(lastPackageEvent.getTime().after(event.toDate()))
+					continue;
+				
+				userPackageEventRepository.save(new UserPackageEventEntity(event.toDate(), tracking.getLast(), userPackage));
+				InstagramDirectSenderQueueManager.addMessage(Constants.getTrackingMessage(event.getDate(), event.getHour(), event.getPlace(), event.getStatus(), String.join("\n", event.getSubStatus())), userPackage.getUser().getIdentification());	
+			}
+		}
+	}
 	
 	@Override
 	public void sendInstagramQueuedMessages() {
@@ -86,10 +118,12 @@ public class TrackingServiceImpl implements ITrackingService {
 						// Has Events
 						if(!tracking.getEvents().isEmpty() && !userPackageRepository.findByTrackingCodeAndUserId(tracking.getCode(), user.getId()).isPresent()) {
 							EventDTO lastEvent = tracking.getEvents().get(0);
-							String message = String.format("(%s às %s %s) - %s \n %s", lastEvent.getDate(), lastEvent.getHour(), lastEvent.getPlace(), lastEvent.getStatus(), String.join("\n", lastEvent.getSubStatus()));
-
+							String message = Constants.getTrackingMessage(lastEvent.getDate(), lastEvent.getHour(), lastEvent.getPlace(), lastEvent.getStatus(), String.join("\n", lastEvent.getSubStatus()));
+							
+							UserPackageEntity userPackage = userPackageRepository.save(new UserPackageEntity(tracking.getCode(), user, shippingCompanyRepository.findById(1).orElseThrow(() -> new NotFoundException("Shipping Company Correios não encontrada."))));
+							userPackageEventRepository.save(new UserPackageEventEntity(lastEvent.toDate(), tracking.getLast(), userPackage));
+							
 							InstagramDirectSenderQueueManager.addMessage(Constants.getNewTrackingPackageMessage(tracking.getCode(), message), thread.getThread_id());
-							userPackageRepository.save(new UserPackageEntity(tracking.getCode(), user, shippingCompanyRepository.findById(1).orElseThrow(() -> new NotFoundException("Shipping Company Correios não encontrada."))));
 						}else {
 							InstagramDirectSenderQueueManager.addMessage(Constants.INVALID_PACKAGE_TRACKING_CODE, thread.getThread_id());
 						}
@@ -100,7 +134,7 @@ public class TrackingServiceImpl implements ITrackingService {
 					}
 					
 				}catch(Exception e) {
-					user = userService.save(new UserEntity(profile.getPk().toString(), socialMediaRepository.findById(1).orElseThrow(() -> new NotFoundException("Social Media Instagram não encontrada."))));
+					user = userService.save(new UserEntity(profile.getPk().toString(), thread.getThread_id(), socialMediaRepository.findById(1).orElseThrow(() -> new NotFoundException("Social Media Instagram não encontrada."))));
 					
 					//Send the welcome message for new users
 					InstagramDirectSenderQueueManager.addMessage(Constants.getWelcomeMessageInstagram(profile.getFull_name() == null ? profile.getUsername() : profile.getFull_name()), thread.getThread_id());

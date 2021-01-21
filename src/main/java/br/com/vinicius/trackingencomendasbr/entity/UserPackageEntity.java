@@ -48,4 +48,7 @@ public class UserPackageEntity implements Serializable{
 	@ManyToOne
 	@JoinColumn(name = "shipping_company_id")
 	private @NonNull ShippingCompanyEntity shippingCompany;
+	
+	public UserPackageEntity() {
+	}
 }
