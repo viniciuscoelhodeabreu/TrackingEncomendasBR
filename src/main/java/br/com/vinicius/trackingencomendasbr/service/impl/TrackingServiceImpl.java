@@ -51,16 +51,21 @@ public class TrackingServiceImpl implements ITrackingService {
 	@Override
 	public void sendTrackingPendingUpdates() {
 		for(UserPackageEntity userPackage : userPackageRepository.findAll()) {
-			TrackingDTO tracking = linkAndTrackService.getTrackingByTrackCode(userPackage.getTrackingCode());
+			Optional<TrackingDTO> tracking = linkAndTrackService.getTrackingByTrackCode(userPackage.getTrackingCode());
 			Optional<UserPackageEventEntity> lastPackageUpdate = userPackageEventRepository.findLastByUserPackageId(userPackage.getId());
 			
-			if(lastPackageUpdate.isPresent() && lastPackageUpdate.get().getLast().equals(tracking.getLast()))
+			if(tracking.isEmpty()) {
+				Util.sleepSeconds(5);
+				continue;
+			}
+			
+			if(lastPackageUpdate.isPresent() && lastPackageUpdate.get().getLast().equals(tracking.get().getLast()))
 				continue;
 			
-			Collections.reverse(tracking.getEvents());
+			Collections.reverse(tracking.get().getEvents());
 			
 			UserPackageEventEntity lastPackageEvent = lastPackageUpdate.get();
-			List<EventDTO> events = tracking.getEvents();
+			List<EventDTO> events = tracking.get().getEvents();
 			
 			for(EventDTO event : events) {
 				if(lastPackageEvent.getTime().after(event.toDate()))
@@ -68,7 +73,7 @@ public class TrackingServiceImpl implements ITrackingService {
 				
 				String message = Constants.getTrackingMessage(event.getDate(), event.getHour(), event.getPlace(), event.getStatus(), String.join("\n", event.getSubStatus()));
 				
-				userPackageEventRepository.save(new UserPackageEventEntity(event.toDate(), tracking.getLast(), userPackage));
+				userPackageEventRepository.save(new UserPackageEventEntity(event.toDate(), tracking.get().getLast(), userPackage));
 				InstagramDirectSenderQueueManager.addMessage(Constants.getNewStatusUpdateMessage(message), userPackage.getUser().getExternalIdentification());
 			}
 		}
@@ -114,17 +119,22 @@ public class TrackingServiceImpl implements ITrackingService {
 					
 					// Validate Correios's Tracking Code
 					if(validateCorreiosTrackingCode(threadMessage)) {
-						TrackingDTO tracking = linkAndTrackService.getTrackingByTrackCode(threadMessage);
+						Optional<TrackingDTO> tracking = linkAndTrackService.getTrackingByTrackCode(threadMessage);
+						
+						if(tracking.isEmpty()) {
+							Util.sleepSeconds(5);
+							continue;
+						}
 						
 						// Has Events
-						if(!tracking.getEvents().isEmpty() && !userPackageRepository.findByTrackingCodeAndUserId(tracking.getCode(), user.getId()).isPresent()) {
-							EventDTO lastEvent = tracking.getEvents().get(0);
+						if(!tracking.get().getEvents().isEmpty() && !userPackageRepository.findByTrackingCodeAndUserId(tracking.get().getCode(), user.getId()).isPresent()) {
+							EventDTO lastEvent = tracking.get().getEvents().get(0);
 							String message = Constants.getTrackingMessage(lastEvent.getDate(), lastEvent.getHour(), lastEvent.getPlace(), lastEvent.getStatus(), String.join("\n", lastEvent.getSubStatus()));
 							
-							UserPackageEntity userPackage = userPackageRepository.save(new UserPackageEntity(tracking.getCode(), user, shippingCompanyRepository.findById(1).orElseThrow(() -> new NotFoundException("Shipping Company Correios não encontrada."))));
-							userPackageEventRepository.save(new UserPackageEventEntity(lastEvent.toDate(), tracking.getLast(), userPackage));
+							UserPackageEntity userPackage = userPackageRepository.save(new UserPackageEntity(tracking.get().getCode(), user, shippingCompanyRepository.findById(1).orElseThrow(() -> new NotFoundException("Shipping Company Correios não encontrada."))));
+							userPackageEventRepository.save(new UserPackageEventEntity(lastEvent.toDate(), tracking.get().getLast(), userPackage));
 							
-							InstagramDirectSenderQueueManager.addMessage(Constants.getNewTrackingPackageMessage(tracking.getCode(), message), thread.getThread_id());
+							InstagramDirectSenderQueueManager.addMessage(Constants.getNewTrackingPackageMessage(tracking.get().getCode(), message), thread.getThread_id());
 						}else {
 							InstagramDirectSenderQueueManager.addMessage(Constants.INVALID_PACKAGE_TRACKING_CODE, thread.getThread_id());
 						}

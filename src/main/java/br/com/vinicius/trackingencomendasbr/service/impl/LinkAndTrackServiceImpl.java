@@ -19,13 +19,16 @@ public class LinkAndTrackServiceImpl implements ILinkAndTrackService {
 
 	@Override
 	@SneakyThrows
-	public TrackingDTO getTrackingByTrackCode(String trackCode) {
+	public Optional<TrackingDTO> getTrackingByTrackCode(String trackCode) {
 		Optional<HttpResponse> httpResponse = HttpUtil.doGet(Constants.getLinkAndTrackUrl(System.getenv("LINKANDTRACK_USER"), System.getenv("LINKANDTRACK_TOKEN"), trackCode));
 		String response = EntityUtils.toString(httpResponse.get().getEntity());
 		
+		if(httpResponse.get().getStatusLine().getStatusCode() == 429)
+			return Optional.empty();
+		
 		TrackingDTO tracking = new Gson().fromJson(response, TrackingDTO.class);
 		
-		return tracking;
+		return Optional.of(tracking);
 	}
 
 }

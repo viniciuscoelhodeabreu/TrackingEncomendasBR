@@ -21,4 +21,6 @@ public class TrackingDTO {
 	private final Float time;
 	@SerializedName(value = "ultimo")
 	private final String last;
+	
+	
 }
